@@ -17,6 +17,8 @@ int main()
 	for (vector <vest_token> ::iterator p = tokens.begin(); 
 		p != tokens.end(); p++)
 	{
+		cout << "line " << (*p).lineno << ", char " << 
+				(*p).charno << "-" << (*p).charno + (*p).len - 1 << " ";
 		switch ((*p).type)
 		{
 			case int_:

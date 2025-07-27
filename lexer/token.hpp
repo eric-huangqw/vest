@@ -267,9 +267,12 @@ vector <vest_token> tokenize(string code)
 {
 	//printf("start parsing\n");
 	vector <vest_token> tokens;
-	for (string::iterator p = code.begin(); p != code.end(); )
+	size_t lineno = 1;
+	string::iterator p, lh, t;
+	for (p = lh = code.begin(); p != code.end(); )
 	{
-		int ft = 0;
+		int ft = 0, k = 0;
+		t = p;
 		vest_token tok(ukn_);
 		if (*p == ',')
 		{
@@ -691,10 +694,15 @@ vector <vest_token> tokenize(string code)
 			//throw_error("unknown token");
 			tok = vest_token(ukn_);
 			((vest_token_unknown *) tok.data) -> ch = *p;
+			if (*p == '\n') k = 1;
 			ft = 1;
 		}
-		tokens.push_back(tok);
 		p += ft;
+		tok.lineno = lineno;
+		tok.charno = t - lh + 1;
+		tok.len = p - t;
+		tokens.push_back(tok);
+		if (k) lineno++;
 	}
 	//printf("end parsing\n");
 	return tokens;
