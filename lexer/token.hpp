@@ -15,14 +15,15 @@ using namespace std;
 
 enum vest_token_type {int_, flt_, str_, brc_, com_, 
 				idn_, kwd_, opr_, ukn_, smc_,
-				cmt_};
-enum vest_bracket_type {round_, squar_, curly_};
+				cmt_}; // token types
+enum vest_bracket_type {round_, squar_, curly_}; // bracket types
 enum vest_oper_type {add_, sub_, mul_, div_, mod_, 
-				pow_, and_, or_, not_, xor_, 
+				pow_, and_, or_, neg_, xor_, 
 				lt_, gt_, le_, ge_, eq_, 
-				logical_and_, logical_or_, logical_xor_, ne_, assign_, 
-				attribute_, add_eq_, sub_eq_, mul_eq_, div_eq_,
-				mod_eq_, pow_eq_, and_eq_, or_eq_, xor_eq_};
+				ne_, logical_and_, logical_or_, logical_xor_, logical_not_, 
+				assign_, attribute_, add_eq_, sub_eq_, mul_eq_, 
+				div_eq_, mod_eq_, pow_eq_, and_eq_, or_eq_, 
+				xor_eq_, neg_eq_}; // operator types
 string vest_keywords[] = {
     // keywords from C
     "auto", "break", "case", "char", "const",
@@ -45,7 +46,7 @@ string vest_keywords[] = {
 class vest_token_data
 {
 	// empty
-};
+}; // base class for following classes
 
 class vest_token_int: public vest_token_data
 {
@@ -120,7 +121,7 @@ class vest_token
 		size_t len;
 		vest_token_type type;
 		vest_token_data *data;
-		void set_token(vest_token_type t)
+		void set_token(vest_token_type t) // allocate space for [data] with given token type
 		{
 			type = t;
 			switch (t)
@@ -160,16 +161,11 @@ class vest_token
 					break;
 			}
 		}
-		template <class T>
-		void set_token()
-		{
-			
-		}
 		vest_token(vest_token_type t)
 		{
 			set_token(t);
 		}
-		vest_token(const vest_token & vd)
+		vest_token(const vest_token & vd) // copy constructor!!!
 		{
 			lineno = vd.lineno;
 			charno = vd.charno;
@@ -211,7 +207,7 @@ class vest_token
 					break;
 			}
 		}
-		vest_token & operator=(const vest_token & vd)
+		vest_token & operator=(const vest_token & vd) // assignment overload!!!!!!!!!!!
 		{
 			delete data;
 			lineno = vd.lineno;
@@ -255,7 +251,7 @@ class vest_token
 			}
 			return *this;
 		}
-		~vest_token()
+		~vest_token() // destructor!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		{
 			delete data;
 		}
@@ -371,6 +367,7 @@ vector <vest_token> tokenize(string code)
 			else if (*(p + 1) == '/')
 			{
 				tok = vest_token(cmt_);
+				// record comment (completely useless)
 				((vest_token_comment *) tok.data) -> text = "";
 				for (p += 2; p != code.end() && *p != '\n'; p++)
 					((vest_token_comment *) tok.data) -> text.push_back(*p);
@@ -424,7 +421,7 @@ vector <vest_token> tokenize(string code)
 			else
 			{
 				tok = vest_token(opr_);
-				((vest_token_operator *) tok.data) -> op = not_;
+				((vest_token_operator *) tok.data) -> op = logical_not_;
 				ft = 1;
 			}
 		else if (*p == '&')
@@ -466,7 +463,7 @@ vector <vest_token> tokenize(string code)
 				ft = 1;
 			}
 		else if (*p == '^')
-			if (*(p + 1) == '^')
+			if (*(p + 1) == '^') // operator "^^" (logical xor, a NEW operator!!)
 			{
 				tok = vest_token(opr_);
 				((vest_token_operator *) tok.data) -> op = logical_xor_;
@@ -517,11 +514,23 @@ vector <vest_token> tokenize(string code)
 				((vest_token_operator *) tok.data) -> op = lt_;
 				ft = 1;
 			}
-		
+		else if (*p == '~')
+			if (*(p + 1) == '=')
+			{
+				tok = vest_token(opr_);
+				((vest_token_operator *) tok.data) -> op = neg_;
+				ft = 2;
+			}
+			else
+			{
+				tok = vest_token(opr_);
+				((vest_token_operator *) tok.data) -> op = neg_eq_;
+				ft = 1;
+			}
 		else if (*p == '0' && *(p + 1) != 0 && 
 			strchr("bBoOxX", *(p + 1)) != 0)
 		{
-			if (tolower(*(p + 1)) == 'x')
+			if (tolower(*(p + 1)) == 'x') // 0x**** number (hex)
 			{
 				p += 2;
 				int n = 0;
@@ -535,7 +544,7 @@ vector <vest_token> tokenize(string code)
 				}
 				((vest_token_int *) tok.data) -> num = n;
 			}
-			else if (tolower(*(p + 1)) == 'b')
+			else if (tolower(*(p + 1)) == 'b') // 0b.... number (binary)
 			{
 				p += 2;
 				int n = 0;
@@ -547,7 +556,7 @@ vector <vest_token> tokenize(string code)
 				}
 				((vest_token_int *) tok.data) -> num = n;
 			}
-			else if (*(p + 1) == 'o')
+			else if (*(p + 1) == 'o') // 0o++++ number (octal, the syntax from python)
 			{
 				p += 2;
 				int n = 0;
@@ -561,23 +570,23 @@ vector <vest_token> tokenize(string code)
 			}
 		}
 		else if (isdigit(*p) || 
-			(*p == '-' && p + 1 != code.end() && isdigit(*(p + 1))))
+			(*p == '-' && p + 1 != code.end() && isdigit(*(p + 1)))) // decimal number
 		{
 			int n = 0;
 			bool_ f = 0;
-			if (*p == '-')
+			if (*p == '-') // negative sign "-"
 			{
 				f = 1;
 				p++;
 			}
-			while (isdigit(*p))
+			while (isdigit(*p)) // read interger part
 				n = n * 10 + *(p++) - '0';
 			if (*p == '.')
 			{
 				p++;
 				double t, x = n;
-				for (t = 10; *p != '\0' && isdigit(*p) && t <= 1e20; t *= 10)
-					x = (x * t + *(p++) - '0') / t;
+				for (t = 10; *p != '\0' && isdigit(*p) && t <= 1e20; t *= 10) // read float part
+					x = (x * t + *(p++) - '0') / t; // too abstract i can't explain it 
 				if (f) x *= -1;
 				while (isdigit(*p)) p++;
 				tok = vest_token(flt_);
@@ -588,22 +597,21 @@ vector <vest_token> tokenize(string code)
 				if (f) n *= -1;
 				tok = vest_token(int_);
 				((vest_token_int *) tok.data) -> num = n;
-
 			}
 		}
-		else if (*p == '-')
+		else if (*p == '-') // ordinary "-" operatir
 		{
 			tok = vest_token(opr_);
 				((vest_token_operator *) tok.data) -> op = sub_;
 			ft = 1;
 		}
-		else if (*p == '_' || isalpha(*p))
+		else if (*p == '_' || isalpha(*p)) // identifier
 		{
 			string t;
 			for (; p != code.end() && (*p == '_' || isalnum(*p)); p++)
 				t.push_back(*p);
 			bool f = 0;
-			for (size_t i = 0; i < vest_keyword_count; i++)
+			for (size_t i = 0; i < vest_keyword_count; i++) // detect keywords
 			{
 				if (t == vest_keywords[i])
 				{
@@ -624,7 +632,7 @@ vector <vest_token> tokenize(string code)
 			p--;
 			ft = 1;
 		}
-		else if (*p == '"')
+		else if (*p == '"') // string
 		{
 			tok = vest_token(str_);
 			((vest_token_string *) tok.data) -> text = "";
@@ -634,7 +642,7 @@ vector <vest_token> tokenize(string code)
 				if (*p == '\\')
 				{
 					p++;
-					if (*p == 'n') c = '\n';
+					if (*p == 'n') c = '\n'; // just escape characters if you aren't sure just search on the internet
 					else if (*p == 't') c = '\t';
 					else if (*p == 'r') c = '\r';
 					else if (*p == 'a') c = '\a';
@@ -644,7 +652,7 @@ vector <vest_token> tokenize(string code)
 					else if (*p == 'v') c = '\v';
 					else if (*p == '0') c = '\0';
 					else if (*p == '?') c = '?';
-					else if (*p == 'x' && isxdigit(*(p + 1)))
+					else if (*p == 'x' && isxdigit(*(p + 1))) // \x** (hex character, DOES NOT support unicode)
 					{
 						int i;
 						for (c = 0, i = 0, p++; i < 2 && p != code.end() && isxdigit(*p); i++, p++)
@@ -657,7 +665,7 @@ vector <vest_token> tokenize(string code)
 						if (i == 0) c = 'x'; 
 						p--;
 					}
-					else if (isdigit(*p))
+					else if (isdigit(*p)) // \+++ (octal character, DOES NOT support unicode either)
 					{
 						int i;
 						for (c = 0, i = 0; i < 3 && p != code.end() && isdigit(*p); i++, p++)
