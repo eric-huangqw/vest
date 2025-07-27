@@ -628,7 +628,7 @@ vector <vest_token> tokenize(string code)
 		{
 			tok = vest_token(str_);
 			((vest_token_string *) tok.data) -> text = "";
-			for (; p != code.end() && *p != '"'; p++)
+			for (p++; p != code.end() && *p != '"'; p++)
 			{
 				char c;
 				if (*p == '\\')
