@@ -15,7 +15,7 @@ using namespace std;
 
 enum vest_token_type {int_, flt_, str_, brc_, com_, 
 				idn_, kwd_, opr_, ukn_, smc_,
-				cmt_}; // token types
+				cmt_, chr_}; // token types
 enum vest_bracket_type {round_, squar_, curly_}; // bracket types
 enum vest_oper_type {add_, sub_, mul_, div_, mod_, 
 				pow_, and_, or_, neg_, xor_, 
@@ -90,6 +90,12 @@ class vest_token_string: public vest_token_data
 		string text;
 };
 
+class vest_token_char: public vest_token_data
+{
+	public:
+		char ch;
+};
+
 class vest_token_operator: public vest_token_data
 {
 	public:
@@ -150,6 +156,9 @@ class vest_token
 				case str_:
 					data = new vest_token_string;
 					break;
+				case chr_:
+					data = new vest_token_char;
+					break;
 				case cmt_:
 					data = new vest_token_comment;
 					break;
@@ -196,6 +205,9 @@ class vest_token
 				case str_:
 					*((vest_token_string *) data) = *((vest_token_string *) vd.data);
 					break;
+				case chr_:
+					*((vest_token_char *) data) = *((vest_token_char *) vd.data);
+					break;
 				case cmt_:
 					*((vest_token_comment *) data) = *((vest_token_comment *) vd.data);
 					break;
@@ -238,6 +250,9 @@ class vest_token
 					break;
 				case str_:
 					*((vest_token_string *) data) = *((vest_token_string *) vd.data);
+					break;
+				case chr_:
+					*((vest_token_char *) data) = *((vest_token_char *) vd.data);
 					break;
 				case cmt_:
 					*((vest_token_comment *) data) = *((vest_token_comment *) vd.data);
@@ -382,7 +397,10 @@ vector <vest_token> tokenize(string code)
 				tok = vest_token(cmt_);
 				((vest_token_comment *) tok.data) -> text = "";
 				for (p += 2; p + 1 != code.end() && (*p != '*' || *(p + 1) != '/'); p++)
+				{
 					((vest_token_comment *) tok.data) -> text.push_back(*p);
+					if (*p == '\n') k++;
+				}
 				if (*p == '*') p++;
 				if (*p == '/') p++;
 				p--;
@@ -689,12 +707,63 @@ vector <vest_token> tokenize(string code)
 			}
 			ft = 1;
 		}
+		else if (*p == '\'')
+		{
+			char c;
+			tok = vest_token(chr_);
+			p++;
+			if (*p == '\\')
+			{
+				p++;
+				if (*p == 'n') c = '\n'; // escape characters AGAIN
+				else if (*p == 't') c = '\t';
+				else if (*p == 'r') c = '\r';
+				else if (*p == 'a') c = '\a';
+				else if (*p == 'b') c = '\b';
+				else if (*p == 't') c = '\t';
+				else if (*p == 'f') c = '\f';
+				else if (*p == 'v') c = '\v';
+				else if (*p == '0') c = '\0';
+				else if (*p == '?') c = '?';
+				else if (*p == 'x' && isxdigit(*(p + 1))) // \x** (hex character, DOES NOT support unicode)
+				{
+					int i;
+					for (c = 0, i = 0, p++; i < 2 && p != code.end() && isxdigit(*p); i++, p++)
+					{
+						c <<= 4;
+						if (*p >= '0' && *p <= '9') c |= *p - '0';
+						else if (*p >= 'A' && *p <= 'F') c |= *p - 'A' + 10;
+						else if (*p >= 'a' && *p <= 'f') c |= *p - 'a' + 10;
+					}
+					if (i == 0) c = 'x'; 
+					p--;
+				}
+				else if (isdigit(*p)) // \+++ (octal character, DOES NOT support unicode either)
+				{
+					int i;
+					for (c = 0, i = 0; i < 3 && p != code.end() && isdigit(*p); i++, p++)
+					{
+						c <<= 3;
+						if (*p >= '0' && *p <= '7') c |= *p - '0';
+					}
+					p--;
+				}
+				else if (*p == '\\') c = '\\';
+				else if (*p == '"') c = '"';
+				else if (*p == '\'') c = '\'';
+				else c = *p;
+			}
+			else
+				c = *p;
+			((vest_token_char *) tok.data) -> ch = c;
+			ft = 2;
+		}
 		else
 		{
 			//throw_error("unknown token");
 			tok = vest_token(ukn_);
 			((vest_token_unknown *) tok.data) -> ch = *p;
-			if (*p == '\n') k = 1;
+			if (*p == '\n') k++;
 			ft = 1;
 		}
 		p += ft;
@@ -702,11 +771,8 @@ vector <vest_token> tokenize(string code)
 		tok.charno = t - lh + 1;
 		tok.len = p - t;
 		tokens.push_back(tok);
-		if (k)
-		{
-			lineno++;
-			lh = p;
-		}
+		lineno += k;
+		if (k) lh = p;
 	}
 	//printf("end parsing\n");
 	return tokens;

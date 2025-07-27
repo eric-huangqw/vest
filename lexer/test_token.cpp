@@ -92,6 +92,9 @@ int main()
 			case str_:
 				cout << "(string) " << ((vest_token_string *) (*p).data) -> text << endl;
 				break;
+			case chr_:
+				cout << "(char) " << ((vest_token_char *) (*p).data) -> ch << endl;
+				break;
 			case cmt_:
 				cout << "(comment) " << ((vest_token_comment *) (*p).data) -> text << endl;
 				break;
