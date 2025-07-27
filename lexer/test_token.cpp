@@ -103,6 +103,7 @@ int main()
 				if (ch == '#')
 					cout << "(preprocessor)" << endl;
 				else if (isspace(ch))
+				{
 					if (ch == '\n')
 						cout << "(newline)" << endl;
 					else if (ch == '\t')
@@ -115,6 +116,7 @@ int main()
 						cout << "(vertical tab)" << endl;
 					else if (ch == '\f')
 						cout << "(form feed)" << endl;
+				}
 				else
 					cout << "(unknown) " << ch << endl;
 				break;

@@ -702,7 +702,11 @@ vector <vest_token> tokenize(string code)
 		tok.charno = t - lh + 1;
 		tok.len = p - t;
 		tokens.push_back(tok);
-		if (k) lineno++;
+		if (k)
+		{
+			lineno++;
+			lh = p;
+		}
 	}
 	//printf("end parsing\n");
 	return tokens;
