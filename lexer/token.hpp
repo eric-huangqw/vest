@@ -13,9 +13,9 @@ using namespace std;
 #define bool_ int
 #endif
 
-enum vest_token_type {int_, flt_, str_, brc_, com_, 
-				idn_, kwd_, opr_, ukn_, smc_,
-				cmt_, chr_}; // token types
+enum vest_token_type {int_, flt_, str_, brc_, idn_, 
+					kwd_, opr_, ukn_, cmt_, chr_, 
+					spc_}; // token types
 enum vest_bracket_type {round_, squar_, curly_}; // bracket types
 enum vest_oper_type {add_, sub_, mul_, div_, mod_, 
 				pow_, and_, or_, neg_, xor_, 
@@ -24,6 +24,7 @@ enum vest_oper_type {add_, sub_, mul_, div_, mod_,
 				assign_, attribute_, add_eq_, sub_eq_, mul_eq_, 
 				div_eq_, mod_eq_, pow_eq_, and_eq_, or_eq_, 
 				xor_eq_, neg_eq_}; // operator types
+enum vest_special_char_type {comma_, semicolon_, colon_}; 
 string vest_keywords[] = {
     // keywords from C
     "auto", "break", "case", "char", "const",
@@ -67,11 +68,6 @@ class vest_token_bracket: public vest_token_data
 		bool dir;
 };
 
-class vest_token_comma: public vest_token_data
-{
-	// empty
-};
-
 class vest_token_keyword: public vest_token_data
 {
 	public:
@@ -102,15 +98,16 @@ class vest_token_operator: public vest_token_data
 		vest_oper_type op;	
 };
 
-class vest_token_semicolon: public vest_token_data
-{
-	// empty
-};
-
 class vest_token_comment: public vest_token_data
 {
 	public:
 		string text;
+};
+
+class vest_token_special_char: public vest_token_data
+{
+	public:
+		vest_special_char_type ctype;
 };
 
 class vest_token_unknown: public vest_token_data
@@ -138,9 +135,6 @@ class vest_token
 				case flt_:
 					data = new vest_token_float;
 					break;
-				case com_:
-					data = new vest_token_comma;
-					break;
 				case brc_:
 					data = new vest_token_bracket;
 					break;
@@ -162,8 +156,8 @@ class vest_token
 				case cmt_:
 					data = new vest_token_comment;
 					break;
-				case smc_:
-					data = new vest_token_semicolon;
+				case spc_:
+					data = new vest_token_special_char;
 					break;
 				default:
 					data = new vest_token_unknown;
@@ -187,9 +181,6 @@ class vest_token
 					break;
 				case flt_:
 					*((vest_token_float *) data) = *((vest_token_float *) vd.data);
-				case com_:
-					*((vest_token_comma *) data) = *((vest_token_comma *) vd.data);
-					break;
 				case brc_:
 					*((vest_token_bracket *) data) = *((vest_token_bracket *) vd.data);
 					break;
@@ -211,8 +202,8 @@ class vest_token
 				case cmt_:
 					*((vest_token_comment *) data) = *((vest_token_comment *) vd.data);
 					break;
-				case smc_:
-					*((vest_token_semicolon *) data) = *((vest_token_semicolon *) vd.data);
+				case spc_:
+					*((vest_token_special_char *) data) = *((vest_token_special_char *) vd.data);
 					break;
 				default:
 					*((vest_token_unknown *) data) = *((vest_token_unknown *) vd.data);
@@ -233,9 +224,6 @@ class vest_token
 					break;
 				case flt_:
 					*((vest_token_float *) data) = *((vest_token_float *) vd.data);
-				case com_:
-					*((vest_token_comma *) data) = *((vest_token_comma *) vd.data);
-					break;
 				case brc_:
 					*((vest_token_bracket *) data) = *((vest_token_bracket *) vd.data);
 					break;
@@ -257,8 +245,8 @@ class vest_token
 				case cmt_:
 					*((vest_token_comment *) data) = *((vest_token_comment *) vd.data);
 					break;
-				case smc_:
-					*((vest_token_semicolon *) data) = *((vest_token_semicolon *) vd.data);
+				case spc_:
+					*((vest_token_special_char *) data) = *((vest_token_special_char *) vd.data);
 					break;
 				default:
 					*((vest_token_unknown *) data) = *((vest_token_unknown *) vd.data);
@@ -291,12 +279,20 @@ vector <vest_token> tokenize(string code)
 		vest_token tok(ukn_);
 		if (*p == ',')
 		{
-			tok = vest_token(com_);
+			tok = vest_token(spc_);
+			((vest_token_special_char *) tok.data) -> ctype = comma_;
 			ft = 1;
 		}
 		else if (*p == ';')
 		{
-			tok = vest_token(smc_);
+			tok = vest_token(spc_);
+			((vest_token_special_char *) tok.data) -> ctype = semicolon_;
+			ft = 1;
+		}
+		else if (*p == ':')
+		{
+			tok = vest_token(spc_);
+			((vest_token_special_char *) tok.data) -> ctype = colon_;
 			ft = 1;
 		}
 		else if (*p == '(')

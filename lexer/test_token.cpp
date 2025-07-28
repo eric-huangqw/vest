@@ -27,9 +27,6 @@ int main()
 			case flt_:
 				cout << "(float) " << ((vest_token_float *) (*p).data) -> num << endl;
 				break;
-			case com_:
-				cout << "(comma)" << endl;
-				break;
 			case brc_:
 				cout << "(bracket) ";
 				if (((vest_token_bracket *) (*p).data) -> dir) cout << "post ";
@@ -98,8 +95,16 @@ int main()
 			case cmt_:
 				cout << "(comment) " << ((vest_token_comment *) (*p).data) -> text << endl;
 				break;
-			case smc_:
-				cout << "(semicolon)" << endl;
+			case spc_:
+				cout << "(special char) ";
+				switch (((vest_token_special_char *) (*p).data) -> ctype)
+				{
+					case comma_: cout << "comma"; break;
+					case semicolon_: cout << "semicolon"; break;
+					case colon_: cout << "colon"; break;
+					default: cout << "???";
+				}
+				cout << endl;
 				break;
 			default:
 				char ch = ((vest_token_unknown *) (*p).data) -> ch;
