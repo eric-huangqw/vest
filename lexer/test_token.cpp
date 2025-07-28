@@ -106,27 +106,23 @@ int main()
 				}
 				cout << endl;
 				break;
+			case wsp_:
+				cout << "(whitespace) ";
+				switch (((vest_token_whitespace *) (*p).data) -> wtype)
+				{
+					case space_: cout << "space"; break;
+					case tab_: cout << "tab"; break;
+					case return_: cout << "carriage return"; break;
+					case newline_: cout << "newline"; break;
+					case vtab_: cout << "vertical tab"; break;
+					case formfd_: cout << "form feed"; break;
+					default: cout << "???";
+				}
+				cout << endl;
+				break;
 			default:
 				char ch = ((vest_token_unknown *) (*p).data) -> ch;
-				if (ch == '#')
-					cout << "(preprocessor)" << endl;
-				else if (isspace(ch))
-				{
-					if (ch == '\n')
-						cout << "(newline)" << endl;
-					else if (ch == '\t')
-						cout << "(tab)" << endl;
-					else if (ch == ' ')
-						cout << "(space)" << endl;
-					else if (ch == '\r')
-						cout << "(carriage return)" << endl;
-					else if (ch == '\v')
-						cout << "(vertical tab)" << endl;
-					else if (ch == '\f')
-						cout << "(form feed)" << endl;
-				}
-				else
-					cout << "(unknown) " << ch << endl;
+				cout << "(unknown) " << ch << endl;
 				break;
 		}
 	}

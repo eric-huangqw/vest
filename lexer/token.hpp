@@ -14,7 +14,7 @@ using namespace std;
 
 enum vest_token_type {int_, flt_, str_, brc_, idn_, 
 					kwd_, opr_, ukn_, cmt_, chr_, 
-					spc_}; // token types
+					spc_, wsp_}; // token types
 enum vest_bracket_type {round_, squar_, curly_}; // bracket types
 enum vest_oper_type {add_, sub_, mul_, div_, mod_, 
 				pow_, and_, or_, neg_, xor_, 
@@ -24,6 +24,7 @@ enum vest_oper_type {add_, sub_, mul_, div_, mod_,
 				div_eq_, mod_eq_, pow_eq_, and_eq_, or_eq_, 
 				xor_eq_, neg_eq_}; // operator types
 enum vest_special_char_type {comma_, semicolon_, colon_}; 
+enum vest_whitespace_type {space_, newline_, tab_, return_, vtab_, formfd_};
 string vest_keywords[] = {
     // keywords from C
     "auto", "break", "case", "char", "const",
@@ -109,6 +110,12 @@ class vest_token_special_char: public vest_token_data
 		vest_special_char_type ctype;
 };
 
+class vest_token_whitespace: public vest_token_data
+{
+	public:
+		vest_whitespace_type wtype;
+};
+
 class vest_token_unknown: public vest_token_data
 {
 	public:
@@ -158,6 +165,9 @@ class vest_token
 				case spc_:
 					data = new vest_token_special_char;
 					break;
+				case wsp_:
+					data = new vest_token_special_char;
+					break;
 				default:
 					data = new vest_token_unknown;
 					break;
@@ -195,6 +205,9 @@ class vest_token
 					break;
 				case spc_:
 					*((vest_token_special_char *) data) = *((vest_token_special_char *) vd.data);
+					break;
+				case wsp_:
+					*((vest_token_whitespace *) data) = *((vest_token_whitespace *) vd.data);
 					break;
 				default:
 					*((vest_token_unknown *) data) = *((vest_token_unknown *) vd.data);
@@ -262,6 +275,42 @@ vector <vest_token> tokenize(string code)
 		{
 			tok = vest_token(spc_);
 			((vest_token_special_char *) tok.data) -> ctype = colon_;
+			ft = 1;
+		}
+		else if (*p == ' ')
+		{
+			tok = vest_token(wsp_);
+			((vest_token_whitespace *) tok.data) -> wtype = space_;
+			ft = 1;
+		}
+		else if (*p == '\n')
+		{
+			tok = vest_token(wsp_);
+			((vest_token_whitespace *) tok.data) -> wtype = newline_;
+			ft = 1;
+		}
+		else if (*p == '\t')
+		{
+			tok = vest_token(wsp_);
+			((vest_token_whitespace *) tok.data) -> wtype = tab_;
+			ft = 1;
+		}
+		else if (*p == '\r')
+		{
+			tok = vest_token(wsp_);
+			((vest_token_whitespace *) tok.data) -> wtype = return_;
+			ft = 1;
+		}
+		else if (*p == '\v')
+		{
+			tok = vest_token(wsp_);
+			((vest_token_whitespace *) tok.data) -> wtype = vtab_;
+			ft = 1;
+		}
+		else if (*p == '\f')
+		{
+			tok = vest_token(wsp_);
+			((vest_token_whitespace *) tok.data) -> wtype = formfd_;
 			ft = 1;
 		}
 		else if (*p == '(')
