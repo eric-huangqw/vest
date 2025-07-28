@@ -8,7 +8,6 @@
 #include <string>
 #include <vector>
 using namespace std;
-//#include "runtime.h"
 #ifndef bool_
 #define bool_ int
 #endif
@@ -124,7 +123,7 @@ class vest_token
 		size_t len;
 		vest_token_type type;
 		vest_token_data *data;
-		void set_token(vest_token_type t) // allocate space for [data] with given token type
+		void setup_token(vest_token_type t) // allocate space for [data] with given token type
 		{
 			type = t;
 			switch (t)
@@ -164,16 +163,8 @@ class vest_token
 					break;
 			}
 		}
-		vest_token(vest_token_type t)
+		void set_token(const vest_token &vd)
 		{
-			set_token(t);
-		}
-		vest_token(const vest_token & vd) // copy constructor!!!
-		{
-			lineno = vd.lineno;
-			charno = vd.charno;
-			len = vd.len;
-			set_token(vd.type);
 			switch (type)
 			{
 				case int_:
@@ -210,48 +201,26 @@ class vest_token
 					break;
 			}
 		}
-		vest_token & operator=(const vest_token & vd) // assignment overload!!!!!!!!!!!
+		vest_token(vest_token_type t)
+		{
+			setup_token(t);
+		}
+		vest_token(const vest_token &vd) // copy constructor!!!
+		{
+			lineno = vd.lineno;
+			charno = vd.charno;
+			len = vd.len;
+			setup_token(vd.type);
+			set_token(vd);
+		}
+		vest_token & operator=(const vest_token &vd) // assignment overload!!!!!!!!!!!
 		{
 			delete data;
 			lineno = vd.lineno;
 			charno = vd.charno;
 			len = vd.len;
-			set_token(vd.type);
-			switch (type)
-			{
-				case int_:
-					*((vest_token_int *) data) = *((vest_token_int *) vd.data);
-					break;
-				case flt_:
-					*((vest_token_float *) data) = *((vest_token_float *) vd.data);
-				case brc_:
-					*((vest_token_bracket *) data) = *((vest_token_bracket *) vd.data);
-					break;
-				case opr_:
-					*((vest_token_operator *) data) = *((vest_token_operator *) vd.data);
-					break;
-				case idn_:
-					*((vest_token_identifier *) data) = *((vest_token_identifier *) vd.data);
-					break;
-				case kwd_:
-					*((vest_token_keyword *) data) = *((vest_token_keyword *) vd.data);
-					break;
-				case str_:
-					*((vest_token_string *) data) = *((vest_token_string *) vd.data);
-					break;
-				case chr_:
-					*((vest_token_char *) data) = *((vest_token_char *) vd.data);
-					break;
-				case cmt_:
-					*((vest_token_comment *) data) = *((vest_token_comment *) vd.data);
-					break;
-				case spc_:
-					*((vest_token_special_char *) data) = *((vest_token_special_char *) vd.data);
-					break;
-				default:
-					*((vest_token_unknown *) data) = *((vest_token_unknown *) vd.data);
-					break;
-			}
+			setup_token(vd.type);
+			set_token(vd);
 			return *this;
 		}
 		~vest_token() // destructor!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
