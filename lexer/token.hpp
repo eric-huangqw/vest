@@ -22,7 +22,7 @@ enum vest_oper_type {add_, sub_, mul_, div_, mod_,
 				ne_, logical_and_, logical_or_, logical_xor_, logical_not_, 
 				assign_, attribute_, add_eq_, sub_eq_, mul_eq_, 
 				div_eq_, mod_eq_, pow_eq_, and_eq_, or_eq_, 
-				xor_eq_, neg_eq_}; // operator types
+				xor_eq_, neg_eq_, lshift_, rshift_}; // operator types
 enum vest_special_char_type {comma_, semicolon_, colon_}; 
 enum vest_whitespace_type {space_, newline_, tab_, return_, vtab_, formfd_};
 string vest_keywords[] = {
@@ -530,6 +530,12 @@ vector <vest_token> tokenize(string code)
 				((vest_token_operator *) tok.data) -> op = ge_;
 				ft = 2;
 			}
+			else if (*(p + 1) == '>')
+			{
+				tok = vest_token(opr_);
+				((vest_token_operator *) tok.data) -> op = rshift_;
+				ft = 2;
+			}
 			else
 			{
 				tok = vest_token(opr_);
@@ -541,6 +547,12 @@ vector <vest_token> tokenize(string code)
 			{
 				tok = vest_token(opr_);
 				((vest_token_operator *) tok.data) -> op = le_;
+				ft = 2;
+			}
+			else if (*(p + 1) == '<')
+			{
+				tok = vest_token(opr_);
+				((vest_token_operator *) tok.data) -> op = lshift_;
 				ft = 2;
 			}
 			else

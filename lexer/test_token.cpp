@@ -76,6 +76,8 @@ int main()
 					case logical_and_: cout << "logical and"; break;
 					case logical_or_: cout << "logical or"; break;
 					case logical_xor_: cout << "logical xor"; break;
+					case lshift_: cout << "left shift"; break;
+					case rshift_: cout << "right shift"; break;
 					default: cout << "???";
 				}
 				cout << endl;
