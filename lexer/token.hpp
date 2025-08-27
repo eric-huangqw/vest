@@ -287,6 +287,7 @@ vector <vest_token> tokenize(string code)
 		{
 			tok = vest_token(wsp_);
 			((vest_token_whitespace *) tok.data) -> wtype = newline_;
+			k = 1;
 			ft = 1;
 		}
 		else if (*p == '\t')
@@ -789,7 +790,6 @@ vector <vest_token> tokenize(string code)
 			//throw_error("unknown token");
 			tok = vest_token(ukn_);
 			((vest_token_unknown *) tok.data) -> ch = *p;
-			if (*p == '\n') k++;
 			ft = 1;
 		}
 		p += ft;
