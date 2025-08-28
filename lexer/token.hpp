@@ -8,8 +8,8 @@
 #include <string>
 #include <vector>
 using namespace std;
-#ifndef bool_
-#define bool_ int
+#ifndef bool
+#define bool int
 #endif
 
 enum vest_token_type {int_, flt_, str_, brc_, idn_, 
@@ -442,11 +442,24 @@ vector <vest_token> tokenize(string code)
 				ft = 1;
 			}
 		else if (*p == '.')
-		{
-			tok = vest_token(opr_);
-				((vest_token_operator *) tok.data) -> op = attribute_;
-			ft = 1;
-		}
+			if (p + 1 != code.end() && isdigit(*(p + 1)))
+			{
+				bool f = 0;
+				p++;
+				double t, x = 0;
+				for (t = 10; *p != '\0' && isdigit(*p) && t <= 1e20; t *= 10) // read float part
+					x = (x * t + *(p++) - '0') / t; // too abstract i can't explain it 
+				if (f) x *= -1;
+				while (isdigit(*p)) p++;
+				tok = vest_token(flt_);
+				((vest_token_float *) tok.data) -> num = x;
+			}
+			else
+			{
+				tok = vest_token(opr_);
+					((vest_token_operator *) tok.data) -> op = attribute_;
+				ft = 1;
+			}
 		else if (*p == '!')
 			if (*(p + 1) == '=')
 			{
@@ -618,10 +631,10 @@ vector <vest_token> tokenize(string code)
 			}
 		}
 		else if (isdigit(*p) || 
-			(*p == '-' && p + 1 != code.end() && isdigit(*(p + 1)))) // decimal number
+			(*p == '-' && p + 1 != code.end() && (isdigit(*(p + 1))) || *(p + 1) == '.')) // decimal number
 		{
 			int n = 0;
-			bool_ f = 0;
+			bool f = 0;
 			if (*p == '-') // negative sign "-"
 			{
 				f = 1;
